@@ -7,7 +7,7 @@ export const enableBlog = false; // requires VITE_CONTENTFUL_ACCESS_TOKEN and VI
 
 /*   STEP 2   */
 export const homepageText = `
-  <p>For 15 seasons, the Coast to Coast Golden Cup has been the battleground where legends rise, friendships are tested, and trash talk reaches Hall of Fame levels. What started as a small group of friends has grown into a tradition—where old rivalries run deep, new blood keeps things fresh, and no lead is ever safe.</p>
+  <p>For 15 seasons, the Coast to Coast Golden Cup has been the battleground where legends rise, friendships are tested, and trash talk is taken to the next level. What started as a small group of friends has grown into a tradition—where old rivalries run deep, new blood keeps things fresh, and no lead is ever safe.</p>
   
 `;
 
