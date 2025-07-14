@@ -26,7 +26,7 @@ export const managers = [
        "managerID": "473176813753856000",
        "name": "TOran",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Kyle, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/TOran.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -49,7 +49,7 @@ export const managers = [
        "managerID": "613914239073165312",
        "name": "GBLonestar",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Austin, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/JEgan.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -72,7 +72,7 @@ export const managers = [
        "managerID": "707271954033356800",
        "name": "jostos",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Austin, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/Justin.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -95,7 +95,7 @@ export const managers = [
        "managerID": "729833296338485248",
        "name": "zachd123",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Round Rock, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/Draper.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -118,7 +118,7 @@ export const managers = [
        "managerID": "729837891198541824",
        "name": "macleight",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Somewhere, North Carolina", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/BatCat.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -141,7 +141,7 @@ export const managers = [
        "managerID": "736627651619491840",
        "name": "peveri01",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Lakeway, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/PaulEverill.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -164,7 +164,7 @@ export const managers = [
        "managerID": "737752256035864576",
        "name": "Travman431",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Austin, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/Travman.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -187,7 +187,7 @@ export const managers = [
        "managerID": "756730224867135488",
        "name": "Janoczech",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Lago Vista, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/WJanosek.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -210,7 +210,7 @@ export const managers = [
        "managerID": "864690292769550336",
        "name": "cjanosek",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Millbrae, California", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/CJanosek.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -233,7 +233,7 @@ export const managers = [
        "managerID": "867805188197650432",
        "name": "BadBoySquad",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Austin, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/Zach.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -256,7 +256,7 @@ export const managers = [
        "managerID": "1121612952399978496",
        "name": "BigSack41",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Somewhere, North Carolina", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/PaulEverill.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
@@ -279,7 +279,7 @@ export const managers = [
        "managerID": "1131729942280024064",
        "name": "SilkyJohnson5264",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
-    //   "location": "Brooklyn", // (optional)
+       "location": "Kyle, Texas", // (optional)
     //   "bio": "Lorem ipsum...",
        "photo": "/managers/Bear.jpg", // square ratio recommended (no larger than 500x500)
     //   "fantasyStart": 2014, // (optional) when did the manager start playing fantasy football
