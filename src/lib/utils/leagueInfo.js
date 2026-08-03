@@ -115,8 +115,8 @@ export const managers = [
       },
   {
        "roster": 5,  // ID of the roster that the manager manages (look at the order of the power rankings graph)
-       "managerID": "729837891198541824",
-       "name": "macleight",
+       "managerID": "1266452995407609856",
+       "name": "Mahomie8715",
     //   "tookOver": 2020, // (optional) used if a manager took over a team, delete this line or change to null otherwise
        "location": "Somewhere, North Carolina", // (optional)
     //   "bio": "Lorem ipsum...",
