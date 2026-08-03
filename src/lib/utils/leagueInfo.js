@@ -1,5 +1,5 @@
 /*   STEP 1   */
-export const leagueID = "1249209175578247168"; // your league ID
+export const leagueID = "1389328850659348480"; // your league ID
 export const leagueName = "Coast to Coast Golden Cup"; // your league name
 export const dues = 100; // (optional) used in template constitution page
 export const dynasty = false; // true for dynasty leagues, false for redraft and keeper
