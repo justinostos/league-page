@@ -159,7 +159,7 @@
     
     <p>4 Bench</p>
 
-    <p>1 IR Spots (Player must be labeled as IR, Out, or Covid in the Sleeper App)</p>
+    <p>1 IR Spots (Player must be labeled as IR in the Sleeper App)</p>
     
     <h3 class="subSectionHeading" bind:this={oneTwo}>1.2 Trading</h3>
     
