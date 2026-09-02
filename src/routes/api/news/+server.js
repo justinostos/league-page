@@ -39,12 +39,21 @@ async function getArticleMeta(url) {
 		const publishedAt =
 			dateMatch && !isNaN(new Date(dateMatch[1]).getTime()) ? new Date(dateMatch[1]).toISOString() : null;
 
+		// Rough plain-text version of the whole page, used only to search for
+		// player mentions — never sent back to the browser.
+		const bodyText = html
+			.replace(/<script[\s\S]*?<\/script>/gi, ' ')
+			.replace(/<style[\s\S]*?<\/style>/gi, ' ')
+			.replace(/<[^>]+>/g, ' ')
+			.replace(/\s+/g, ' ');
+
 		return {
 			image: imageMatch ? imageMatch[1] : null,
-			publishedAt
+			publishedAt,
+			bodyText
 		};
 	} catch {
-		return { image: null, publishedAt: null };
+		return { image: null, publishedAt: null, bodyText: '' };
 	}
 }
 
@@ -124,8 +133,9 @@ export async function GET() {
 		const articles = await Promise.all(
 			items.map(async (item) => {
 				const meta = await getArticleMeta(item.link);
-				const description = (item.description ?? '').replace(/<[^>]*>/g, '').trim();
-				const teamMentions = findTeamMentions(`${item.title} ${description}`, teams);
+								const description = (item.description ?? '').replace(/<[^>]*>/g, '').trim();
+				const matchText = `${item.title} ${description} ${meta.bodyText ?? ''}`;
+				const teamMentions = findTeamMentions(matchText, teams);
 				const rosteredMentions = [...new Set(teamMentions.flatMap((m) => m.players))];
 				return {
 					title: item.title,
