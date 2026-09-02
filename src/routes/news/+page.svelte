@@ -1,6 +1,9 @@
 <script>
 	export let data;
 
+	let searchTerm = '';
+	let fantasyOnly = false;
+
 	function timeAgo(dateStr) {
 		if (!dateStr) return '';
 		const diffMs = Math.max(0, Date.now() - new Date(dateStr).getTime());
@@ -14,17 +17,42 @@
 		return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 	}
 
-	$: hero = data.articles?.[0];
-	$: rest = data.articles?.slice(1) ?? [];
+	$: filtered = (data.articles ?? []).filter((a) => {
+		if (fantasyOnly && !a.isFantasy) return false;
+		if (searchTerm.trim()) {
+			const q = searchTerm.trim().toLowerCase();
+			const haystack = `${a.title} ${a.description}`.toLowerCase();
+			if (!haystack.includes(q)) return false;
+		}
+		return true;
+	});
+
+	$: hero = filtered[0];
+	$: rest = filtered.slice(1);
 </script>
 
 <div class="news-page">
 	<h1>Fantasy Football News</h1>
 
+	<div class="controls">
+		<input
+			class="search"
+			type="text"
+			placeholder="Search news… (e.g. a player or team name)"
+			bind:value={searchTerm}
+		/>
+		<div class="toggle-group">
+			<button class:active={!fantasyOnly} on:click={() => (fantasyOnly = false)}>All</button>
+			<button class:active={fantasyOnly} on:click={() => (fantasyOnly = true)}>Fantasy Only</button>
+		</div>
+	</div>
+
 	{#if data.error}
 		<p>Couldn't load news right now — check back soon.</p>
 	{:else if !data.articles || data.articles.length === 0}
 		<p>No news right now — check back soon.</p>
+	{:else if filtered.length === 0}
+		<p class="empty">No stories match "{searchTerm}"{fantasyOnly ? ' in Fantasy Only' : ''}. Try a different search or switch back to All.</p>
 	{:else}
 		<a class="hero" href={hero.link} target="_blank" rel="noopener noreferrer">
 			{#if hero.image}
@@ -44,7 +72,7 @@
 		</a>
 
 		<ul class="news-feed">
-			{#each rest as article, i}
+			{#each rest as article, i (article.link)}
 				<li class="news-card" style="animation-delay: {i * 60}ms">
 					<a href={article.link} target="_blank" rel="noopener noreferrer">
 						{#if article.image}
@@ -77,8 +105,56 @@
 	h1 {
 		font-size: 1.75rem;
 		font-weight: 700;
-		margin-bottom: 1.5rem;
+		margin-bottom: 1.25rem;
 	}
+
+	.controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		margin-bottom: 1.75rem;
+	}
+
+	.search {
+		flex: 1;
+		min-width: 200px;
+		padding: 0.55rem 0.9rem;
+		border-radius: 8px;
+		border: 1px solid rgba(0, 49, 107, 0.25);
+		background-color: var(--fff);
+		color: inherit;
+		font-size: 0.9rem;
+	}
+	.search:focus {
+		outline: none;
+		border-color: #00316b;
+	}
+
+	.toggle-group {
+		display: flex;
+		border-radius: 999px;
+		overflow: hidden;
+		border: 1px solid rgba(0, 49, 107, 0.25);
+		flex-shrink: 0;
+	}
+	.toggle-group button {
+		border: none;
+		background: transparent;
+		color: inherit;
+		padding: 0.55rem 1rem;
+		font-size: 0.85rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.toggle-group button.active {
+		background-color: #00316b;
+		color: #fff;
+	}
+
+	.empty {
+		color: var(--g555, #888);
+	}
+
 	.hero {
 		display: block;
 		text-decoration: none;
@@ -117,6 +193,7 @@
 		color: var(--g555, #888);
 		margin: 0 0 0.75rem;
 	}
+
 	.news-feed {
 		list-style: none;
 		padding: 0;
