@@ -48,60 +48,66 @@ async function getArticleMeta(url) {
 	}
 }
 
-// --- League roster cache (refreshes every 12 hours) ---
-let rosterCache = null;
-let rosterCacheTime = 0;
-const ROSTER_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+// --- Per-team roster cache (refreshes every 12 hours) ---
+let teamsCache = null;
+let teamsCacheTime = 0;
+const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 
-async function getRosteredPlayerNames() {
+async function getLeagueTeams() {
 	const now = Date.now();
-	if (rosterCache && now - rosterCacheTime < ROSTER_CACHE_TTL_MS) {
-		return rosterCache;
+	if (teamsCache && now - teamsCacheTime < CACHE_TTL_MS) {
+		return teamsCache;
 	}
 	try {
-		const [rostersRes, playersRes] = await Promise.all([
+		const [rostersRes, usersRes, playersRes] = await Promise.all([
 			fetch(`https://api.sleeper.app/v1/league/${leagueID}/rosters`),
+			fetch(`https://api.sleeper.app/v1/league/${leagueID}/users`),
 			fetch('https://api.sleeper.app/v1/players/nfl')
 		]);
 		const rosters = await rostersRes.json();
+		const users = await usersRes.json();
 		const players = await playersRes.json();
 
-		const rosteredIds = new Set();
-		for (const roster of rosters ?? []) {
+		const userMap = {};
+		for (const u of users ?? []) {
+			userMap[u.user_id] = u.metadata?.team_name || u.display_name || 'Unnamed Team';
+		}
+
+		const teams = (rosters ?? []).map((roster) => {
+			const names = [];
 			for (const id of roster.players ?? []) {
-				rosteredIds.add(String(id));
+				const p = players?.[String(id)];
+				if (p?.position !== 'DEF' && p?.full_name) names.push(p.full_name);
 			}
-		}
+			return {
+				name: userMap[roster.owner_id] || `Team ${roster.roster_id}`,
+				players: names
+			};
+		});
 
-		const names = [];
-		for (const id of rosteredIds) {
-			const p = players?.[id];
-			if (p?.position !== 'DEF' && p?.full_name) {
-				names.push(p.full_name);
-			}
-		}
-
-		rosterCache = names;
-		rosterCacheTime = now;
-		return names;
+		teamsCache = teams;
+		teamsCacheTime = now;
+		return teams;
 	} catch {
-		return rosterCache ?? [];
+		return teamsCache ?? [];
 	}
 }
 
-function findRosteredMentions(text, rosteredNames) {
+function findTeamMentions(text, teams) {
 	const lower = text.toLowerCase();
 	const matches = [];
-	for (const name of rosteredNames) {
-		if (name.length < 6) continue;
-		if (lower.includes(name.toLowerCase())) matches.push(name);
+	for (const team of teams) {
+		const hitPlayers = team.players.filter((name) => name.length >= 6 && lower.includes(name.toLowerCase()));
+		if (hitPlayers.length > 0) {
+			matches.push({ team: team.name, players: hitPlayers });
+		}
 	}
 	return matches;
 }
 
 export async function GET() {
 	try {
-		const [res, rosteredNames] = await Promise.all([fetch(FEED_URL), getRosteredPlayerNames()]);
+		const [res, teams] = await Promise.all([fetch(FEED_URL), getLeagueTeams()]);
 		const xml = await res.text();
 
 		const parser = new XMLParser({ ignoreAttributes: false });
@@ -114,7 +120,8 @@ export async function GET() {
 			items.map(async (item) => {
 				const meta = await getArticleMeta(item.link);
 				const description = (item.description ?? '').replace(/<[^>]*>/g, '').trim();
-				const rosteredMentions = findRosteredMentions(`${item.title} ${description}`, rosteredNames);
+				const teamMentions = findTeamMentions(`${item.title} ${description}`, teams);
+				const rosteredMentions = [...new Set(teamMentions.flatMap((m) => m.players))];
 				return {
 					title: item.title,
 					link: item.link,
@@ -122,15 +129,16 @@ export async function GET() {
 					pubDate: meta.publishedAt ?? toIsoDate(item.pubDate),
 					image: meta.image,
 					isFantasy: typeof item.link === 'string' && item.link.includes('/fantasy/'),
-					rosteredMentions
+					rosteredMentions,
+					teamMentions
 				};
 			})
 		);
 
 		articles.sort((a, b) => new Date(b.pubDate ?? 0) - new Date(a.pubDate ?? 0));
 
-		return json({ source: 'ESPN', articles });
+		return json({ source: 'ESPN', articles, teams: teams.map((t) => t.name) });
 	} catch (err) {
-		return json({ source: 'ESPN', articles: [], error: 'Failed to load news' }, { status: 500 });
+		return json({ source: 'ESPN', articles: [], teams: [], error: 'Failed to load news' }, { status: 500 });
 	}
 }
