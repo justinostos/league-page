@@ -19,6 +19,19 @@ function toIsoDate(pubDate) {
 	return isNaN(d.getTime()) ? null : d.toISOString();
 }
 
+const LIFESTYLE_KEYWORDS = [
+	'wedding', 'marries', 'married', 'engaged', 'engagement ring', 'divorce',
+	'girlfriend', 'boyfriend', 'romance', 'relationship status',
+	'pregnant', 'pregnancy', 'expecting a baby', 'newborn',
+	'photoshoot', 'photo shoot', 'swimsuit', 'red carpet', 'fashion week',
+	'reveals dog', 'new puppy', 'vacation photos', 'engagement announcement'
+];
+
+function looksLikeLifestyle(title) {
+	const lower = (title ?? '').toLowerCase();
+	return LIFESTYLE_KEYWORDS.some((kw) => lower.includes(kw));
+}
+
 async function getArticleMeta(url) {
 	try {
 		const controller = new AbortController();
@@ -137,7 +150,8 @@ export async function GET() {
 		const data = parser.parse(xml);
 
 		const rawItems = data?.rss?.channel?.item ?? [];
-		const items = (Array.isArray(rawItems) ? rawItems : [rawItems]).slice(0, 12);
+		const allItems = Array.isArray(rawItems) ? rawItems : [rawItems];
+		const items = allItems.filter((item) => !looksLikeLifestyle(item.title)).slice(0, 12);
 
 		const articles = await Promise.all(
 			items.map(async (item) => {
