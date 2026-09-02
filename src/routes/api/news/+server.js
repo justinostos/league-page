@@ -1,6 +1,6 @@
 import { XMLParser } from 'fast-xml-parser';
 import { json } from '@sveltejs/kit';
-import { leagueID } from '$lib/utils/leagueInfo';
+import { leagueID, managers } from '$lib/utils/leagueInfo';
 
 const FEED_URL = 'https://www.espn.com/espn/rss/nfl/news';
 
@@ -64,13 +64,18 @@ async function getLeagueTeams() {
 			fetch(`https://api.sleeper.app/v1/league/${leagueID}/users`),
 			fetch('https://api.sleeper.app/v1/players/nfl')
 		]);
-		const rosters = await rostersRes.json();
+				const rosters = await rostersRes.json();
 		const users = await usersRes.json();
 		const players = await playersRes.json();
 
+		const managerNameMap = {};
+		for (const m of managers ?? []) {
+			if (m.managerID) managerNameMap[m.managerID] = m.name;
+		}
+
 		const userMap = {};
 		for (const u of users ?? []) {
-			userMap[u.user_id] = u.metadata?.team_name || u.display_name || 'Unnamed Team';
+			userMap[u.user_id] = managerNameMap[u.user_id] || u.metadata?.team_name || u.display_name || 'Unnamed Team';
 		}
 
 		const teams = (rosters ?? []).map((roster) => {
