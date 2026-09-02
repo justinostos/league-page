@@ -2,7 +2,8 @@
 	export let data;
 
 	let searchTerm = '';
-	let filterMode = 'all'; // 'all' | 'fantasy' | 'league'
+	let showFantasyOnly = false;
+	let selectedTeam = ''; // '' = no team filter, '__any__' = any rostered player, else a team name
 
 	function timeAgo(dateStr) {
 		if (!dateStr) return '';
@@ -17,9 +18,14 @@
 		return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 	}
 
+	function playersForTeam(article, teamName) {
+		return article.teamMentions?.find((m) => m.team === teamName)?.players ?? [];
+	}
+
 	$: filtered = (data.articles ?? []).filter((a) => {
-		if (filterMode === 'fantasy' && !a.isFantasy) return false;
-		if (filterMode === 'league' && !(a.rosteredMentions?.length > 0)) return false;
+		if (showFantasyOnly && !a.isFantasy) return false;
+		if (selectedTeam === '__any__' && !(a.rosteredMentions?.length > 0)) return false;
+		if (selectedTeam && selectedTeam !== '__any__' && !a.teamMentions?.some((m) => m.team === selectedTeam)) return false;
 		if (searchTerm.trim()) {
 			const q = searchTerm.trim().toLowerCase();
 			const haystack = `${a.title} ${a.description}`.toLowerCase();
@@ -43,10 +49,18 @@
 			bind:value={searchTerm}
 		/>
 		<div class="toggle-group">
-			<button class:active={filterMode === 'all'} on:click={() => (filterMode = 'all')}>All</button>
-			<button class:active={filterMode === 'fantasy'} on:click={() => (filterMode = 'fantasy')}>Fantasy Only</button>
-			<button class:active={filterMode === 'league'} on:click={() => (filterMode = 'league')}>My League</button>
+			<button class:active={!showFantasyOnly} on:click={() => (showFantasyOnly = false)}>All</button>
+			<button class:active={showFantasyOnly} on:click={() => (showFantasyOnly = true)}>Fantasy Only</button>
 		</div>
+		{#if data.teams?.length}
+			<select class="team-select" bind:value={selectedTeam}>
+				<option value="">All Teams</option>
+				<option value="__any__">Any Rostered Player</option>
+				{#each data.teams as team}
+					<option value={team}>{team}</option>
+				{/each}
+			</select>
+		{/if}
 	</div>
 
 	{#if data.error}
@@ -54,9 +68,7 @@
 	{:else if !data.articles || data.articles.length === 0}
 		<p>No news right now — check back soon.</p>
 	{:else if filtered.length === 0}
-		<p class="empty">
-			No stories match{searchTerm ? ` "${searchTerm}"` : ''}{filterMode !== 'all' ? ` in ${filterMode === 'league' ? 'My League' : 'Fantasy Only'}` : ''}. Try different filters.
-		</p>
+		<p class="empty">No stories match your filters. Try widening your search.</p>
 	{:else}
 		<a class="hero" href={hero.link} target="_blank" rel="noopener noreferrer">
 			{#if hero.image}
@@ -69,7 +81,9 @@
 				</div>
 				<h2>{hero.title}</h2>
 				<p>{hero.description}</p>
-				{#if hero.rosteredMentions?.length}
+				{#if selectedTeam && selectedTeam !== '__any__' && playersForTeam(hero, selectedTeam).length}
+					<p class="mentions">{selectedTeam}: {playersForTeam(hero, selectedTeam).join(', ')}</p>
+				{:else if hero.rosteredMentions?.length}
 					<p class="mentions">Mentions: {hero.rosteredMentions.join(', ')}</p>
 				{/if}
 				<span class="meta">
@@ -93,7 +107,9 @@
 							</div>
 							<h3>{article.title}</h3>
 							<p>{article.description}</p>
-							{#if article.rosteredMentions?.length}
+							{#if selectedTeam && selectedTeam !== '__any__' && playersForTeam(article, selectedTeam).length}
+								<p class="mentions">{selectedTeam}: {playersForTeam(article, selectedTeam).join(', ')}</p>
+							{:else if article.rosteredMentions?.length}
 								<p class="mentions">Mentions: {article.rosteredMentions.join(', ')}</p>
 							{/if}
 							<span class="meta">
@@ -159,6 +175,15 @@
 	.toggle-group button.active {
 		background-color: #00316b;
 		color: #fff;
+	}
+	.team-select {
+		padding: 0.55rem 0.9rem;
+		border-radius: 8px;
+		border: 1px solid rgba(0, 49, 107, 0.25);
+		background-color: var(--fff);
+		color: inherit;
+		font-size: 0.85rem;
+		font-weight: 600;
 	}
 	.empty {
 		color: var(--g555, #888);
