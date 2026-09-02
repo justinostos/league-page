@@ -2,7 +2,8 @@
 	export let data;
 
 	function timeAgo(dateStr) {
-		const diffMs = Date.now() - new Date(dateStr).getTime();
+		if (!dateStr) return '';
+		const diffMs = Math.max(0, Date.now() - new Date(dateStr).getTime());
 		const mins = Math.floor(diffMs / 60000);
 		if (mins < 1) return 'just now';
 		if (mins < 60) return `${mins}m ago`;
