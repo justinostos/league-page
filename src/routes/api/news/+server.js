@@ -78,6 +78,10 @@ async function getArticleMeta(url) {
 			publishedAt,
 			bodyText
 		};
+	} catch {
+		return { image: null, publishedAt: null, bodyText: '' };
+	}
+}
 
 // --- Per-team roster cache (refreshes every 12 hours) ---
 let teamsCache = null;
@@ -95,7 +99,7 @@ async function getLeagueTeams() {
 			fetch(`https://api.sleeper.app/v1/league/${leagueID}/users`),
 			fetch('https://api.sleeper.app/v1/players/nfl')
 		]);
-				const rosters = await rostersRes.json();
+		const rosters = await rostersRes.json();
 		const users = await usersRes.json();
 		const players = await playersRes.json();
 
@@ -149,7 +153,7 @@ export async function GET() {
 		const parser = new XMLParser({ ignoreAttributes: false });
 		const data = parser.parse(xml);
 
-				const rawItems = data?.rss?.channel?.item ?? [];
+		const rawItems = data?.rss?.channel?.item ?? [];
 		const allItems = Array.isArray(rawItems) ? rawItems : [rawItems];
 		const items = allItems
 			.filter((item) => typeof item.link === 'string' && item.link.includes('/fantasy/'))
