@@ -3,13 +3,35 @@ import { json } from '@sveltejs/kit';
 
 const FEED_URL = 'https://www.espn.com/espn/rss/nfl/news';
 
-function extractImage(item) {
-	const thumb = item['media:thumbnail'];
-	if (thumb) {
-		return Array.isArray(thumb) ? (thumb[0]?.['@_url'] ?? null) : (thumb['@_url'] ?? null);
+const TZ_OFFSETS = {
+	EST: '-0500', EDT: '-0400',
+	CST: '-0600', CDT: '-0500',
+	MST: '-0700', MDT: '-0600',
+	PST: '-0800', PDT: '-0700',
+	UTC: '+0000', GMT: '+0000'
+};
+
+function toIsoDate(pubDate) {
+	if (!pubDate) return null;
+	const fixed = pubDate.replace(/\s([A-Z]{2,4})$/, (m, tz) => (TZ_OFFSETS[tz] ? ' ' + TZ_OFFSETS[tz] : m));
+	const d = new Date(fixed);
+	return isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+async function getOgImage(url) {
+	try {
+		const controller = new AbortController();
+		const timer = setTimeout(() => controller.abort(), 4000);
+		const res = await fetch(url, { signal: controller.signal });
+		clearTimeout(timer);
+		const html = await res.text();
+		const match =
+			html.match(/<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i) ||
+			html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+property=["']og:image["']/i);
+		return match ? match[1] : null;
+	} catch {
+		return null;
 	}
-	if (item.enclosure?.['@_url']) return item.enclosure['@_url'];
-	return null;
 }
 
 export async function GET() {
@@ -21,16 +43,18 @@ export async function GET() {
 		const data = parser.parse(xml);
 
 		const rawItems = data?.rss?.channel?.item ?? [];
-		const items = Array.isArray(rawItems) ? rawItems : [rawItems];
+		const items = (Array.isArray(rawItems) ? rawItems : [rawItems]).slice(0, 12);
 
-		const articles = items.slice(0, 16).map((item) => ({
-			title: item.title,
-			link: item.link,
-			description: (item.description ?? '').replace(/<[^>]*>/g, '').trim(),
-			pubDate: item.pubDate,
-			image: extractImage(item),
-			isFantasy: typeof item.link === 'string' && item.link.includes('/fantasy/')
-		}));
+		const articles = await Promise.all(
+			items.map(async (item) => ({
+				title: item.title,
+				link: item.link,
+				description: (item.description ?? '').replace(/<[^>]*>/g, '').trim(),
+				pubDate: toIsoDate(item.pubDate),
+				image: await getOgImage(item.link),
+				isFantasy: typeof item.link === 'string' && item.link.includes('/fantasy/')
+			}))
+		);
 
 		return json({ source: 'ESPN', articles });
 	} catch (err) {
