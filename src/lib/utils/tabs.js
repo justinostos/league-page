@@ -26,6 +26,12 @@ export const tabs = [
         key: 'blog',
     },
     {
+        icon: 'newspaper',
+        label: 'News',
+        dest: '/news',
+        key: 'news',
+    },
+    {
         icon: 'view_comfy',
         label: 'League Info',
         nest: true,
