@@ -2,7 +2,7 @@
 	export let data;
 
 	let searchTerm = '';
-	let fantasyOnly = false;
+	let filterMode = 'all'; // 'all' | 'fantasy' | 'league'
 
 	function timeAgo(dateStr) {
 		if (!dateStr) return '';
@@ -18,7 +18,8 @@
 	}
 
 	$: filtered = (data.articles ?? []).filter((a) => {
-		if (fantasyOnly && !a.isFantasy) return false;
+		if (filterMode === 'fantasy' && !a.isFantasy) return false;
+		if (filterMode === 'league' && !(a.rosteredMentions?.length > 0)) return false;
 		if (searchTerm.trim()) {
 			const q = searchTerm.trim().toLowerCase();
 			const haystack = `${a.title} ${a.description}`.toLowerCase();
@@ -42,8 +43,9 @@
 			bind:value={searchTerm}
 		/>
 		<div class="toggle-group">
-			<button class:active={!fantasyOnly} on:click={() => (fantasyOnly = false)}>All</button>
-			<button class:active={fantasyOnly} on:click={() => (fantasyOnly = true)}>Fantasy Only</button>
+			<button class:active={filterMode === 'all'} on:click={() => (filterMode = 'all')}>All</button>
+			<button class:active={filterMode === 'fantasy'} on:click={() => (filterMode = 'fantasy')}>Fantasy Only</button>
+			<button class:active={filterMode === 'league'} on:click={() => (filterMode = 'league')}>My League</button>
 		</div>
 	</div>
 
@@ -52,18 +54,24 @@
 	{:else if !data.articles || data.articles.length === 0}
 		<p>No news right now — check back soon.</p>
 	{:else if filtered.length === 0}
-		<p class="empty">No stories match "{searchTerm}"{fantasyOnly ? ' in Fantasy Only' : ''}. Try a different search or switch back to All.</p>
+		<p class="empty">
+			No stories match{searchTerm ? ` "${searchTerm}"` : ''}{filterMode !== 'all' ? ` in ${filterMode === 'league' ? 'My League' : 'Fantasy Only'}` : ''}. Try different filters.
+		</p>
 	{:else}
 		<a class="hero" href={hero.link} target="_blank" rel="noopener noreferrer">
 			{#if hero.image}
 				<img class="hero-img" src={hero.image} alt="" />
 			{/if}
 			<div class="hero-body">
-				{#if hero.isFantasy}
-					<span class="badge fantasy">FANTASY</span>
-				{/if}
+				<div class="badges">
+					{#if hero.isFantasy}<span class="badge fantasy">FANTASY</span>{/if}
+					{#if hero.rosteredMentions?.length}<span class="badge league">MY LEAGUE</span>{/if}
+				</div>
 				<h2>{hero.title}</h2>
 				<p>{hero.description}</p>
+				{#if hero.rosteredMentions?.length}
+					<p class="mentions">Mentions: {hero.rosteredMentions.join(', ')}</p>
+				{/if}
 				<span class="meta">
 					<span class="source">{data.source}</span>
 					<span class="date">{timeAgo(hero.pubDate)}</span>
@@ -79,11 +87,15 @@
 							<img class="thumb" src={article.image} alt="" />
 						{/if}
 						<div class="card-body">
-							{#if article.isFantasy}
-								<span class="badge fantasy small">FANTASY</span>
-							{/if}
+							<div class="badges">
+								{#if article.isFantasy}<span class="badge fantasy small">FANTASY</span>{/if}
+								{#if article.rosteredMentions?.length}<span class="badge league small">MY LEAGUE</span>{/if}
+							</div>
 							<h3>{article.title}</h3>
 							<p>{article.description}</p>
+							{#if article.rosteredMentions?.length}
+								<p class="mentions">Mentions: {article.rosteredMentions.join(', ')}</p>
+							{/if}
 							<span class="meta">
 								<span class="source">{data.source}</span>
 								<span class="date">{timeAgo(article.pubDate)}</span>
@@ -107,14 +119,12 @@
 		font-weight: 700;
 		margin-bottom: 1.25rem;
 	}
-
 	.controls {
 		display: flex;
 		flex-wrap: wrap;
 		gap: 0.75rem;
 		margin-bottom: 1.75rem;
 	}
-
 	.search {
 		flex: 1;
 		min-width: 200px;
@@ -129,7 +139,6 @@
 		outline: none;
 		border-color: #00316b;
 	}
-
 	.toggle-group {
 		display: flex;
 		border-radius: 999px;
@@ -145,16 +154,15 @@
 		font-size: 0.85rem;
 		font-weight: 600;
 		cursor: pointer;
+		white-space: nowrap;
 	}
 	.toggle-group button.active {
 		background-color: #00316b;
 		color: #fff;
 	}
-
 	.empty {
 		color: var(--g555, #888);
 	}
-
 	.hero {
 		display: block;
 		text-decoration: none;
@@ -191,9 +199,8 @@
 		font-size: 0.95rem;
 		line-height: 1.45;
 		color: var(--g555, #888);
-		margin: 0 0 0.75rem;
+		margin: 0 0 0.5rem;
 	}
-
 	.news-feed {
 		list-style: none;
 		padding: 0;
@@ -246,12 +253,17 @@
 	.card-body p {
 		font-size: 0.9rem;
 		line-height: 1.4;
-		margin: 0 0 0.5rem 0;
+		margin: 0 0 0.4rem 0;
 		color: var(--g555, #888);
 		display: -webkit-box;
 		-webkit-line-clamp: 2;
 		-webkit-box-orient: vertical;
 		overflow: hidden;
+	}
+	.badges {
+		display: flex;
+		gap: 0.4rem;
+		margin-bottom: 0.4rem;
 	}
 	.badge {
 		display: inline-block;
@@ -261,14 +273,23 @@
 		text-transform: uppercase;
 		padding: 0.15rem 0.5rem;
 		border-radius: 999px;
-		margin-bottom: 0.4rem;
 	}
 	.badge.fantasy {
 		background-color: #e8672c;
 		color: #fff;
 	}
+	.badge.league {
+		background-color: #1a8f4c;
+		color: #fff;
+	}
 	.badge.small {
 		font-size: 0.62rem;
+	}
+	.mentions {
+		font-size: 0.8rem;
+		font-weight: 600;
+		color: #1a8f4c;
+		margin: 0 0 0.5rem 0;
 	}
 	.meta {
 		display: flex;
