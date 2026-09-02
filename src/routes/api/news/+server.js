@@ -149,9 +149,12 @@ export async function GET() {
 		const parser = new XMLParser({ ignoreAttributes: false });
 		const data = parser.parse(xml);
 
-		const rawItems = data?.rss?.channel?.item ?? [];
+				const rawItems = data?.rss?.channel?.item ?? [];
 		const allItems = Array.isArray(rawItems) ? rawItems : [rawItems];
-		const items = allItems.filter((item) => !looksLikeLifestyle(item.title)).slice(0, 12);
+		const items = allItems
+			.filter((item) => typeof item.link === 'string' && item.link.includes('/fantasy/'))
+			.filter((item) => !looksLikeLifestyle(item.title))
+			.slice(0, 12);
 
 		const articles = await Promise.all(
 			items.map(async (item) => {
