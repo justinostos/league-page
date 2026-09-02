@@ -39,23 +39,32 @@ async function getArticleMeta(url) {
 		const publishedAt =
 			dateMatch && !isNaN(new Date(dateMatch[1]).getTime()) ? new Date(dateMatch[1]).toISOString() : null;
 
-		// Rough plain-text version of the whole page, used only to search for
-		// player mentions — never sent back to the browser.
-		const bodyText = html
-			.replace(/<script[\s\S]*?<\/script>/gi, ' ')
-			.replace(/<style[\s\S]*?<\/style>/gi, ' ')
-			.replace(/<[^>]+>/g, ' ')
-			.replace(/\s+/g, ' ');
+		// Try to pull the *actual* article text from the page's structured data
+		// (the hidden block sites embed for Google, containing only the real
+		// story — not sidebars, related links, or promo modules).
+		let bodyText = '';
+		const ldBlocks = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) ?? [];
+		for (const block of ldBlocks) {
+			const jsonMatch = block.match(/<script[^>]*>([\s\S]*?)<\/script>/i);
+			if (!jsonMatch) continue;
+			try {
+				const parsed = JSON.parse(jsonMatch[1]);
+				const candidates = Array.isArray(parsed) ? parsed : [parsed];
+				for (const c of candidates) {
+					if (typeof c?.articleBody === 'string') {
+						bodyText += ' ' + c.articleBody;
+					}
+				}
+			} catch {
+				// malformed JSON-LD on this page — skip it
+			}
+		}
 
 		return {
 			image: imageMatch ? imageMatch[1] : null,
 			publishedAt,
 			bodyText
 		};
-	} catch {
-		return { image: null, publishedAt: null, bodyText: '' };
-	}
-}
 
 // --- Per-team roster cache (refreshes every 12 hours) ---
 let teamsCache = null;
@@ -133,8 +142,10 @@ export async function GET() {
 		const articles = await Promise.all(
 			items.map(async (item) => {
 				const meta = await getArticleMeta(item.link);
-								const description = (item.description ?? '').replace(/<[^>]*>/g, '').trim();
-				const matchText = `${item.title} ${description} ${meta.bodyText ?? ''}`;
+				const description = (item.description ?? '').replace(/<[^>]*>/g, '').trim();
+				// Fall back to just the headline/summary if we couldn't find the
+				// article's real text — safer than guessing from the whole page.
+				const matchText = meta.bodyText ? `${item.title} ${description} ${meta.bodyText}` : `${item.title} ${description}`;
 				const teamMentions = findTeamMentions(matchText, teams);
 				const rosteredMentions = [...new Set(teamMentions.flatMap((m) => m.players))];
 				return {
